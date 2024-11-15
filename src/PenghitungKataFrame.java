@@ -1,3 +1,12 @@
+
+import java.awt.Color;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.JOptionPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
@@ -14,6 +23,7 @@ public class PenghitungKataFrame extends javax.swing.JFrame {
      */
     public PenghitungKataFrame() {
         initComponents();
+        initDocumentListener();
     }
 
     /**
@@ -121,6 +131,11 @@ public class PenghitungKataFrame extends javax.swing.JFrame {
         jPanel1.add(labelParagraf, gridBagConstraints);
 
         btnHitung.setText("Hitung");
+        btnHitung.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHitungActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -139,6 +154,11 @@ public class PenghitungKataFrame extends javax.swing.JFrame {
         jPanel1.add(btnSimpan, gridBagConstraints);
 
         btnCarikata.setText("Cari kata");
+        btnCarikata.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCarikataActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -157,6 +177,94 @@ public class PenghitungKataFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnHitungActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHitungActionPerformed
+        hitungJumlah();        // TODO add your handling code here:
+    }//GEN-LAST:event_btnHitungActionPerformed
+
+    private void btnCarikataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCarikataActionPerformed
+        cariKata();        // TODO add your handling code here:
+    }//GEN-LAST:event_btnCarikataActionPerformed
+
+    private void initDocumentListener() {
+        // Menambahkan DocumentListener untuk mendeteksi perubahan di JTextArea
+        txtInput.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                hitungJumlah();  // Hitung jumlah setiap kali ada perubahan
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                hitungJumlah();  // Hitung jumlah setiap kali ada perubahan
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                // Tidak digunakan untuk JTextArea, karena hanya akan dipanggil untuk perubahan gaya teks
+            }
+        });
+    }
+
+    private void hitungJumlah() {
+        String teks = txtInput.getText();
+
+        // Menghitung jumlah kata (kata dipisahkan oleh spasi, tab, atau karakter lain yang tidak dianggap kata)
+        String[] kataArray = teks.trim().split("\\s+");
+        int jumlahKata = (teks.trim().isEmpty()) ? 0 : kataArray.length;
+
+        // Menghitung jumlah karakter (termasuk spasi, tanpa menghitung karakter non-printable)
+        int jumlahKarakter = teks.length();
+
+        // Menghitung jumlah kalimat, kalimat diakhiri dengan '.', '?', atau '!'
+        int jumlahKalimat = teks.split("[.!?]").length;
+
+        // Menghitung jumlah paragraf berdasarkan newline (baris kosong antar paragraf)
+        int jumlahParagraf = teks.split("(?m)^\\s*$").length;
+
+        // Update label dengan hasil perhitungan
+        labelKata.setText(String.valueOf(jumlahKata));
+        labelKarakter.setText(String.valueOf(jumlahKarakter));
+        labelKalimat.setText(String.valueOf(jumlahKalimat));
+        labelParagraf.setText(String.valueOf(jumlahParagraf));
+    }
+    
+    private void cariKata() {
+    String kataCari = txtCari.getText().trim();  // Ambil kata dari txtCari dan hapus spasi di awal/akhir
+    String teksInput = txtInput.getText();  // Ambil teks dari JTextArea (txtInput)
+
+    if (kataCari.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Masukkan kata yang ingin dicari.");
+        return;
+    }
+
+    // Buat Highlighter untuk menyorot kata yang ditemukan
+    Highlighter highlighter = txtInput.getHighlighter();
+    highlighter.removeAllHighlights();  // Hapus highlight sebelumnya
+
+    // Buat pattern regex untuk mencari kata (case-insensitive)
+    Pattern pattern = Pattern.compile(Pattern.quote(kataCari), Pattern.CASE_INSENSITIVE);
+    Matcher matcher = pattern.matcher(teksInput);
+
+    int count = 0;
+    while (matcher.find()) {
+        try {
+            // Sorot kata yang ditemukan
+            highlighter.addHighlight(matcher.start(), matcher.end(), new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW));
+            count++;  // Hitung jumlah kemunculan kata
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Tampilkan jumlah kemunculan kata yang ditemukan
+    if (count > 0) {
+        JOptionPane.showMessageDialog(this, "Ditemukan " + count + " kemunculan kata \"" + kataCari + "\".");
+    } else {
+        JOptionPane.showMessageDialog(this, "Kata \"" + kataCari + "\" tidak ditemukan.");
+    }
+}
+
 
     /**
      * @param args the command line arguments
