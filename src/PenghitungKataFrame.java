@@ -1,7 +1,12 @@
 
 import java.awt.Color;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
@@ -11,7 +16,6 @@ import javax.swing.text.Highlighter;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-
 /**
  *
  * @author USER
@@ -54,7 +58,7 @@ public class PenghitungKataFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jScrollPane1.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        jScrollPane1.setBorder(javax.swing.BorderFactory.createTitledBorder("Aplikasi Penghitung Kata"));
         jScrollPane1.setPreferredSize(new java.awt.Dimension(280, 180));
 
         txtInput.setColumns(20);
@@ -145,6 +149,11 @@ public class PenghitungKataFrame extends javax.swing.JFrame {
         jPanel1.add(btnHitung, gridBagConstraints);
 
         btnSimpan.setText("Simpan");
+        btnSimpan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSimpanActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
@@ -185,6 +194,51 @@ public class PenghitungKataFrame extends javax.swing.JFrame {
     private void btnCarikataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCarikataActionPerformed
         cariKata();        // TODO add your handling code here:
     }//GEN-LAST:event_btnCarikataActionPerformed
+
+    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
+        simpanHasil();        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSimpanActionPerformed
+
+    private void simpanHasil() {
+        // Tampilkan JFileChooser untuk memilih file penyimpanan
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Pilih Lokasi untuk Menyimpan File");
+
+        // Menampilkan dialog simpan
+        int pilihan = fileChooser.showSaveDialog(this);
+
+        if (pilihan == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();  // Ambil file yang dipilih pengguna
+
+            // Jika file tidak memiliki ekstensi .txt, tambahkan ekstensi tersebut
+            if (!file.getName().endsWith(".txt")) {
+                file = new File(file.getAbsolutePath() + ".txt");
+            }
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                // Ambil teks dari JTextArea
+                String teksInput = txtInput.getText();
+
+                // Ambil hasil perhitungan
+                String hasilPerhitungan = "Jumlah kata: " + labelKata.getText() + "\n"
+                        + "Jumlah karakter: " + labelKarakter.getText() + "\n"
+                        + "Jumlah kalimat: " + labelKalimat.getText() + "\n"
+                        + "Jumlah paragraf: " + labelParagraf.getText() + "\n\n";
+
+                // Menulis teks dan hasil perhitungan ke file
+                writer.write("Teks Input:\n");
+                writer.write(teksInput);
+                writer.write("\n\n");
+                writer.write(hasilPerhitungan);
+
+                // Menampilkan pesan konfirmasi bahwa file berhasil disimpan
+                JOptionPane.showMessageDialog(this, "File berhasil disimpan di: " + file.getAbsolutePath());
+            } catch (IOException ex) {
+                // Menangani kesalahan dalam menulis file
+                JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat menyimpan file: " + ex.getMessage());
+            }
+        }
+    }
 
     private void initDocumentListener() {
         // Menambahkan DocumentListener untuk mendeteksi perubahan di JTextArea
@@ -228,43 +282,42 @@ public class PenghitungKataFrame extends javax.swing.JFrame {
         labelKalimat.setText(String.valueOf(jumlahKalimat));
         labelParagraf.setText(String.valueOf(jumlahParagraf));
     }
-    
+
     private void cariKata() {
-    String kataCari = txtCari.getText().trim();  // Ambil kata dari txtCari dan hapus spasi di awal/akhir
-    String teksInput = txtInput.getText();  // Ambil teks dari JTextArea (txtInput)
+        String kataCari = txtCari.getText().trim();  // Ambil kata dari txtCari dan hapus spasi di awal/akhir
+        String teksInput = txtInput.getText();  // Ambil teks dari JTextArea (txtInput)
 
-    if (kataCari.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Masukkan kata yang ingin dicari.");
-        return;
-    }
+        if (kataCari.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Masukkan kata yang ingin dicari.");
+            return;
+        }
 
-    // Buat Highlighter untuk menyorot kata yang ditemukan
-    Highlighter highlighter = txtInput.getHighlighter();
-    highlighter.removeAllHighlights();  // Hapus highlight sebelumnya
+        // Buat Highlighter untuk menyorot kata yang ditemukan
+        Highlighter highlighter = txtInput.getHighlighter();
+        highlighter.removeAllHighlights();  // Hapus highlight sebelumnya
 
-    // Buat pattern regex untuk mencari kata (case-insensitive)
-    Pattern pattern = Pattern.compile(Pattern.quote(kataCari), Pattern.CASE_INSENSITIVE);
-    Matcher matcher = pattern.matcher(teksInput);
+        // Buat pattern regex untuk mencari kata (case-insensitive)
+        Pattern pattern = Pattern.compile(Pattern.quote(kataCari), Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(teksInput);
 
-    int count = 0;
-    while (matcher.find()) {
-        try {
-            // Sorot kata yang ditemukan
-            highlighter.addHighlight(matcher.start(), matcher.end(), new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW));
-            count++;  // Hitung jumlah kemunculan kata
-        } catch (BadLocationException e) {
-            e.printStackTrace();
+        int count = 0;
+        while (matcher.find()) {
+            try {
+                // Sorot kata yang ditemukan
+                highlighter.addHighlight(matcher.start(), matcher.end(), new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW));
+                count++;  // Hitung jumlah kemunculan kata
+            } catch (BadLocationException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Tampilkan jumlah kemunculan kata yang ditemukan
+        if (count > 0) {
+            JOptionPane.showMessageDialog(this, "Ditemukan " + count + " kemunculan kata \"" + kataCari + "\".");
+        } else {
+            JOptionPane.showMessageDialog(this, "Kata \"" + kataCari + "\" tidak ditemukan.");
         }
     }
-
-    // Tampilkan jumlah kemunculan kata yang ditemukan
-    if (count > 0) {
-        JOptionPane.showMessageDialog(this, "Ditemukan " + count + " kemunculan kata \"" + kataCari + "\".");
-    } else {
-        JOptionPane.showMessageDialog(this, "Kata \"" + kataCari + "\" tidak ditemukan.");
-    }
-}
-
 
     /**
      * @param args the command line arguments
